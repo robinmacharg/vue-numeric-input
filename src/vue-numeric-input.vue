@@ -15,6 +15,7 @@
       @change="onChange"
       @blur="onBlur"
       @focus="onFocus"
+      v-on:keyup.enter="$event.target.blur()"
       :autofocus="autofocus"
       :disabled="disabled"
       :readonly="readonly"
@@ -24,6 +25,7 @@
         v-if="controls"
         class="btn btn-decrement"
         @mousedown="start(decrement)"
+        @contextmenu.prevent
         @touchstart="$event.preventDefault(); start(decrement)"
         @touchend="$event.preventDefault(); stop($event)"
         :disabled="disabled || numericValue <= min"
@@ -35,6 +37,7 @@
         v-if="controls"
         class="btn btn-increment"
         @mousedown="start(increment)"
+        @contextmenu.prevent
         @touchstart="$event.preventDefault(); start(increment)"
         @touchend="$event.preventDefault(); stop($event)"
         :disabled="disabled || numericValue >= max"
@@ -44,6 +47,7 @@
   </div>
 </template>
 <script>
+
 const timeInterval = 100
 
 export default {
@@ -97,6 +101,11 @@ export default {
     controlsType: {
       type: String,
       default: 'plusminus'
+    },
+
+    delayValidation: {
+      type: Boolean,
+      default: false
     }
 
   },
@@ -105,7 +114,9 @@ export default {
       numericValue: null,
       interval: null,
       startTime: null,
-      handler: Function
+      handler: Function,
+      deferredValue: null,
+      backingValue: null,
     }
   },
   watch: {
@@ -169,7 +180,12 @@ export default {
      * Handle value on Input
      */
     inputHandler (val) {
-      this.updateValue(this.toNumber(val), val)
+      if (this.delayValidation) {
+        this.deferredValue = this.toNumber(val)
+      }
+      else {
+        this.updateValue(this.toNumber(val), val)
+      }
     },
     /**
      * Update value on operation performed
@@ -189,6 +205,7 @@ export default {
         return
       }
       this.numericValue = val
+      this.backingValue = val
       this.$emit('input', val)
     },
     /**
@@ -222,6 +239,14 @@ export default {
      * @param event - blur event on input
      */
     onBlur (event) {
+      if (this.delayValidation) {
+        if (isNaN(parseFloat(this.deferredValue))) {
+          this.updateValue(this.backingValue)
+        }
+        else {
+          this.updateValue(this.deferredValue)
+        }
+      }
       this.$emit('blur', event)
     },
     /**
@@ -229,6 +254,7 @@ export default {
      * @param event
      */
     onFocus (event) {
+      this.backingValue = this.value
       this.$emit('focus', event)
     },
     /**
