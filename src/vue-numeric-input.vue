@@ -116,8 +116,7 @@ export default {
       startTime: null,
       handler: Function,
       deferredValue: null,
-      backingValue: null,
-    }
+      backingValue: null }
   },
   watch: {
     // Watch for value change
@@ -182,8 +181,7 @@ export default {
     inputHandler (val) {
       if (this.delayValidation) {
         this.deferredValue = this.toNumber(val)
-      }
-      else {
+      } else {
         this.updateValue(this.toNumber(val), val)
       }
     },
@@ -242,8 +240,7 @@ export default {
       if (this.delayValidation) {
         if (isNaN(parseFloat(this.deferredValue))) {
           this.updateValue(this.backingValue)
-        }
-        else {
+        } else {
           this.updateValue(this.deferredValue)
         }
       }
